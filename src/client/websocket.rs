@@ -16,6 +16,7 @@ struct WebSocketImpl<'a, S, L> {
     server: &'a Server<'a>,
     socket: WebSocketStream<S>,
     listener: L,
+    ready: bool,
 }
 
 #[allow(missing_docs)]
@@ -28,6 +29,11 @@ pub struct WebSocketHandleImpl<'a, S> {
 /// An event listener that gets called when websocket messages are received
 #[async_trait]
 pub trait PteroWebSocketListener<H: PteroWebSocketHandle>: Send {
+    /// Called when the websocket is ready to use
+    async fn on_ready(&mut self, _handle: &mut H) -> crate::Result<()> {
+        Ok(())
+    }
+
     /// Called when a server status message is received
     async fn on_status(&mut self, _handle: &mut H, _status: ServerState) -> crate::Result<()> {
         Ok(())
@@ -110,6 +116,7 @@ impl<'a> Server<'a> {
             server: self,
             socket,
             listener,
+            ready: false,
         };
         socket.run_loop(token).await
     }
@@ -126,8 +133,10 @@ impl<'a> Server<'a> {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, PartialEq, Eq)]
 enum IncomingEvent {
+    #[serde(rename = "auth success")]
+    AuthSuccess,
     #[serde(rename = "status")]
     Status,
     #[serde(rename = "console output")]
@@ -169,7 +178,22 @@ where
             args: Vec<String>,
         }
         let message: Message = serde_json::from_str(&message)?;
+        if message.event != IncomingEvent::AuthSuccess && !self.ready {
+            return Err(crate::Error::UnexpectedMessage);
+        }
+
         match message.event {
+            IncomingEvent::AuthSuccess => {
+                let mut handle = WebSocketHandleImpl {
+                    socket: &mut self.socket,
+                    stop: false,
+                };
+                if !self.ready {
+                    self.ready = true;
+                    self.listener.on_ready(&mut handle).await?;
+                }
+                Ok(handle.stop)
+            }
             IncomingEvent::Status => {
                 let mut handle = WebSocketHandleImpl {
                     socket: &mut self.socket,
