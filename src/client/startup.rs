@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// The startup data for a server
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct StartupData {
     /// The startup command without variables substituted
     pub startup_command: String,
@@ -18,6 +19,7 @@ pub struct StartupData {
 
 /// A startup variable
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct Variable {
     /// The name of the variable
     pub name: String,

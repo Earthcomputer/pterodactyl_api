@@ -10,6 +10,7 @@ use uuid::Uuid;
 
 /// A backup created on a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct Backup {
     /// The backup ID
     pub uuid: Uuid,

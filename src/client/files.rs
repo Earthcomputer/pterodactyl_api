@@ -62,6 +62,7 @@ fn relativize(file: &str, root: &str) -> String {
 
 /// Represents a file on the file system of a Pterodactyl server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct PteroFile {
     /// The file name
     pub name: String,

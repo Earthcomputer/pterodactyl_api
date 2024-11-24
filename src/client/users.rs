@@ -10,6 +10,7 @@ use uuid::Uuid;
 
 /// A user on a server that holds permissions for that server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct User {
     /// The ID of this user
     pub uuid: Uuid,

@@ -3,13 +3,13 @@
 use crate::client::{Client, ErrorResponse};
 use crate::http::{EmptyBody, ErrorHandler};
 use crate::structs::{PteroData, PteroList, PteroObject};
-use async_trait::async_trait;
 use reqwest::{Method, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
 /// Contains information about your client account
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct Account {
     /// The account ID
     pub id: u64,
@@ -45,6 +45,7 @@ pub struct RecoveryTokens {
 
 /// An API key to allow access to this account via the API
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ApiKey {
     /// The ID for the API key
     pub identifier: String,
@@ -92,7 +93,6 @@ impl Client {
             code: String,
         }
         struct Enable2faErrorHandler;
-        #[async_trait]
         impl ErrorHandler for Enable2faErrorHandler {
             async fn get_error(response: Response) -> Option<crate::Error> {
                 if response.status() != StatusCode::BAD_REQUEST {
@@ -122,7 +122,6 @@ impl Client {
             password: String,
         }
         struct Disable2faErrorHandler;
-        #[async_trait]
         impl ErrorHandler for Disable2faErrorHandler {
             async fn get_error(response: Response) -> Option<crate::Error> {
                 if response.status() != StatusCode::BAD_REQUEST {
@@ -155,7 +154,6 @@ impl Client {
             password: String,
         }
         struct UpdateEmailErrorHandler;
-        #[async_trait]
         impl ErrorHandler for UpdateEmailErrorHandler {
             async fn get_error(response: Response) -> Option<crate::Error> {
                 if response.status() != StatusCode::BAD_REQUEST {
@@ -197,7 +195,6 @@ impl Client {
             password_confirmation: String,
         }
         struct UpdatePasswordErrorHandler;
-        #[async_trait]
         impl ErrorHandler for UpdatePasswordErrorHandler {
             async fn get_error(response: Response) -> Option<crate::Error> {
                 if response.status() != StatusCode::BAD_REQUEST {

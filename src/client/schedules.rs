@@ -10,6 +10,7 @@ use time::OffsetDateTime;
 
 /// A task schedule for a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct Schedule {
     /// The ID of this schedule
     pub id: u64,
@@ -85,6 +86,7 @@ impl Default for Cron {
 /// Rules for a field of [`Cron`]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct CronField {
+    #[allow(clippy::doc_markdown)]
     /// A set of rules for when a field triggers. These rules are ORed together
     pub parts: Vec<CronPart>,
 }
@@ -254,6 +256,7 @@ impl Serialize for CronField {
 
 /// The tasks for this schedule
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ScheduleRelationships {
     /// The tasks for this schedule
     #[serde(deserialize_with = "crate::structs::ptero_list")]
@@ -262,6 +265,7 @@ pub struct ScheduleRelationships {
 
 /// A task in a schedule
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ScheduleTask {
     /// The ID of the task
     pub id: u64,
@@ -299,7 +303,7 @@ pub enum ScheduleAction {
     /// Create a backup
     Backup {
         /// The files to ignore while creating the backup
-        ignored_files: Vec<String>
+        ignored_files: Vec<String>,
     },
 }
 

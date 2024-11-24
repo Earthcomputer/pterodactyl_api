@@ -3,12 +3,12 @@
 use crate::client::{ErrorResponse, Server};
 use crate::http::{EmptyBody, ErrorHandler};
 use crate::structs::{PteroList, PteroObject};
-use async_trait::async_trait;
 use reqwest::{Method, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 
 /// A network allocation on the server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct Allocation {
     /// The ID of this allocation
     pub id: u64,
@@ -90,7 +90,6 @@ impl Server<'_> {
     /// given allocation is the primary allocation and therefore cannot be deleted
     pub async fn delete_network_allocation(&self, allocation_id: u64) -> crate::Result<()> {
         struct DeleteNetworkAllocationErrorHandler;
-        #[async_trait]
         impl ErrorHandler for DeleteNetworkAllocationErrorHandler {
             async fn get_error(response: Response) -> Option<crate::Error> {
                 if response.status() != StatusCode::BAD_REQUEST {

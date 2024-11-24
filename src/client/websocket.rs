@@ -2,7 +2,6 @@
 
 use crate::client::{PowerSignal, Server, ServerState};
 use crate::Error::WebsocketTokenExpired;
-use async_trait::async_trait;
 use async_tungstenite::tungstenite::Message;
 use async_tungstenite::WebSocketStream;
 use futures_io::{AsyncRead, AsyncWrite};
@@ -11,6 +10,15 @@ use reqwest::Method;
 use serde::de::value::StrDeserializer;
 use serde::{Deserialize, Serialize};
 use std::future::Future;
+
+#[doc(hidden)]
+mod sealed {
+    use super::WebSocketHandleImpl;
+    use futures_io::{AsyncRead, AsyncWrite};
+
+    pub(super) trait Sealed {}
+    impl<S> Sealed for WebSocketHandleImpl<'_, S> where S: AsyncRead + AsyncWrite + Unpin + Send {}
+}
 
 struct WebSocketImpl<'a, S, L> {
     server: &'a Server<'a>,
@@ -27,46 +35,64 @@ pub struct WebSocketHandleImpl<'a, S> {
 }
 
 /// An event listener that gets called when websocket messages are received
-#[async_trait]
 pub trait PteroWebSocketListener<H: PteroWebSocketHandle>: Send {
     /// Called when the websocket is ready to use
-    async fn on_ready(&mut self, _handle: &mut H) -> crate::Result<()> {
-        Ok(())
+    fn on_ready(&mut self, _handle: &mut H) -> impl Future<Output = crate::Result<()>> + Send {
+        async { Ok(()) }
     }
 
     /// Called when a server status message is received
-    async fn on_status(&mut self, _handle: &mut H, _status: ServerState) -> crate::Result<()> {
-        Ok(())
+    fn on_status(
+        &mut self,
+        _handle: &mut H,
+        _status: ServerState,
+    ) -> impl Future<Output = crate::Result<()>> + Send {
+        async { Ok(()) }
     }
 
     /// Called when a console output message is received
-    async fn on_console_output(&mut self, _handle: &mut H, _output: &str) -> crate::Result<()> {
-        Ok(())
+    fn on_console_output(
+        &mut self,
+        _handle: &mut H,
+        _output: &str,
+    ) -> impl Future<Output = crate::Result<()>> + Send {
+        async { Ok(()) }
     }
 
     /// Called when a server stats message is received
-    async fn on_stats(&mut self, _handle: &mut H, _stats: ServerStats) -> crate::Result<()> {
-        Ok(())
+    fn on_stats(
+        &mut self,
+        _handle: &mut H,
+        _stats: ServerStats,
+    ) -> impl Future<Output = crate::Result<()>> + Send {
+        async { Ok(()) }
     }
 }
 
 /// A handle to control the websocket
-#[async_trait]
-pub trait PteroWebSocketHandle: Send {
+#[allow(private_bounds)]
+pub trait PteroWebSocketHandle: Send + sealed::Sealed {
     /// Request server stats
-    async fn request_stats(&mut self) -> crate::Result<()>;
+    fn request_stats(&mut self) -> impl Future<Output = crate::Result<()>> + Send;
     /// Request server logs
-    async fn request_logs(&mut self) -> crate::Result<()>;
+    fn request_logs(&mut self) -> impl Future<Output = crate::Result<()>> + Send;
     /// Send a power signal to the server
-    async fn send_power_signal(&mut self, signal: PowerSignal) -> crate::Result<()>;
+    fn send_power_signal(
+        &mut self,
+        signal: PowerSignal,
+    ) -> impl Future<Output = crate::Result<()>> + Send;
     /// Send a command to the server
-    async fn send_command(&mut self, command: impl Into<String> + Send) -> crate::Result<()>;
+    fn send_command(
+        &mut self,
+        command: impl Into<String> + Send,
+    ) -> impl Future<Output = crate::Result<()>> + Send;
     /// End the websocket connection
     fn disconnect(&mut self);
 }
 
 /// Server stats received from a websocket
 #[derive(Debug, Deserialize, Copy, Clone)]
+#[non_exhaustive]
 pub struct ServerStats {
     /// The used memory of the server in bytes
     pub memory_bytes: u64,
@@ -134,6 +160,7 @@ impl<'a> Server<'a> {
 }
 
 #[derive(Deserialize, PartialEq, Eq)]
+#[non_exhaustive]
 enum IncomingEvent {
     #[serde(rename = "auth success")]
     AuthSuccess,
@@ -261,7 +288,6 @@ where
     }
 }
 
-#[async_trait]
 impl<S> PteroWebSocketHandle for WebSocketHandleImpl<'_, S>
 where
     S: AsyncRead + AsyncWrite + Unpin + Send,

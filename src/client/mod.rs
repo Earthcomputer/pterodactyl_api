@@ -186,11 +186,7 @@ impl Server<'_> {
 
 #[cfg(test)]
 mod test {
-    use crate::client::backups::BackupParams;
-    use crate::client::schedules::ScheduleParams;
-    use crate::client::websocket::{PteroWebSocketHandle, PteroWebSocketListener};
-    use crate::client::{Client, ClientBuilder, EmptyBody, ServerState};
-    use async_trait::async_trait;
+    use crate::client::{Client, ClientBuilder};
 
     fn make_test_client() -> Client {
         ClientBuilder::new(

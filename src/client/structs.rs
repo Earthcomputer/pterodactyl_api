@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 /// A server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerStruct {
     /// Whether the connected account is the owner of this server
     pub server_owner: bool,
@@ -56,6 +57,7 @@ pub struct IpAndPort {
 
 /// Virtual hardware limits for a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerLimits {
     /// Maximum memory, or 0 for unlimited
     pub memory: u64,
@@ -94,6 +96,7 @@ where
 
 /// Limits for various feature on the server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerFeatureLimits {
     /// The maximum number of databases
     pub databases: Option<u64>,
@@ -121,6 +124,7 @@ pub enum ServerStatus {
 
 /// Extra metadata for a server
 #[derive(Debug, Default, Deserialize)]
+#[non_exhaustive]
 pub struct ServerRelationships {
     /// The network allocations of this server
     #[serde(deserialize_with = "crate::structs::ptero_list")]
@@ -139,6 +143,7 @@ pub struct PermissionGroup {
 
 /// Represents the current resources of a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerResources {
     /// The current state of the server
     pub current_state: ServerState,
@@ -150,6 +155,7 @@ pub struct ServerResources {
 
 /// Represents resource usage of a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerResourcesResources {
     /// The amount of memory used, in bytes
     pub memory_bytes: u64,

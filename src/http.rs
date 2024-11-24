@@ -1,5 +1,4 @@
 use crate::client::{Client, RateLimits};
-use async_trait::async_trait;
 use reqwest::{Body, Method, RequestBuilder, Response, StatusCode};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -117,7 +116,6 @@ pub(crate) trait RequestBody {
     fn encode(self, request: RequestBuilder) -> crate::Result<RequestBuilder>;
 }
 
-#[async_trait]
 pub(crate) trait ResponseBody {
     async fn decode(response: Response) -> crate::Result<Self>
     where
@@ -130,7 +128,6 @@ impl RequestBody for EmptyBody {
         Ok(request)
     }
 }
-#[async_trait]
 impl ResponseBody for EmptyBody {
     async fn decode(_: Response) -> crate::Result<Self> {
         Ok(Self)
@@ -143,7 +140,6 @@ impl<T: Serialize> RequestBody for &T {
     }
 }
 
-#[async_trait]
 impl<T: DeserializeOwned> ResponseBody for T {
     async fn decode(response: Response) -> crate::Result<Self> {
         let bytes = response.bytes().await?;
@@ -161,13 +157,11 @@ where
     }
 }
 
-#[async_trait]
 pub(crate) trait ErrorHandler {
     async fn get_error(response: Response) -> Option<crate::Error>;
 }
 
 pub(crate) struct NullErrorHandler;
-#[async_trait]
 impl ErrorHandler for NullErrorHandler {
     async fn get_error(_response: Response) -> Option<crate::Error> {
         None

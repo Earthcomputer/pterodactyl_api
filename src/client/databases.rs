@@ -8,6 +8,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 /// A database on a server
 #[derive(Debug, Deserialize)]
+#[non_exhaustive]
 pub struct ServerDatabase {
     /// The ID of the database
     pub id: String,
@@ -28,6 +29,7 @@ pub struct ServerDatabase {
 
 /// Additional information about a database
 #[derive(Debug, Deserialize, Default)]
+#[non_exhaustive]
 pub struct DatabaseRelationships {
     /// The database password required to login to the database. May not be present if the request
     /// doesn't return the password.
