@@ -5,7 +5,7 @@ use crate::Error::WebsocketTokenExpired;
 use async_tungstenite::tungstenite::Message;
 use async_tungstenite::WebSocketStream;
 use futures_io::{AsyncRead, AsyncWrite};
-use futures_util::{SinkExt, StreamExt};
+use futures_util::StreamExt;
 use reqwest::Method;
 use serde::de::value::StrDeserializer;
 use serde::{Deserialize, Serialize};
@@ -187,7 +187,7 @@ where
         self.auth(token).await?;
         while let Some(message) = self.socket.next().await {
             if let Message::Text(message) = message? {
-                if self.handle_message(message).await? {
+                if self.handle_message(&message).await? {
                     break;
                 }
             } else {
@@ -197,14 +197,14 @@ where
         Ok(())
     }
 
-    async fn handle_message(&mut self, message: String) -> crate::Result<bool> {
+    async fn handle_message(&mut self, message: &str) -> crate::Result<bool> {
         #[derive(Deserialize)]
         struct Message {
             event: IncomingEvent,
             #[serde(default)]
             args: Vec<String>,
         }
-        let message: Message = serde_json::from_str(&message)?;
+        let message: Message = serde_json::from_str(message)?;
         if message.event != IncomingEvent::AuthSuccess && !self.ready {
             return Err(crate::Error::UnexpectedMessage);
         }
